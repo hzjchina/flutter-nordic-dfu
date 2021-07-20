@@ -116,7 +116,7 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
      */
     private void startDfu(String address, @Nullable String name, String filePath, Boolean forceDfu, Boolean enableUnsafeExperimentalButtonlessServiceInSecureDfu, Boolean disableNotification, Boolean keepBond, Boolean packetReceiptNotificationsEnabled, Boolean restoreBond, Boolean startAsForegroundService, Result result,Integer numberOfPackets,Boolean enablePRNs) {
 
-        DfuServiceInitiator starter = new DfuServiceInitiator(address)
+       /* DfuServiceInitiator starter = new DfuServiceInitiator(address)
                // .setZip(filePath)
                 .setDeviceName("DfuTarg")
                 .setKeepBond(true)
@@ -126,7 +126,20 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
                 .setPrepareDataObjectDelay(400)
                 .setBinOrHex(DfuService.TYPE_APPLICATION,null, filePath)
                 .setInitFile(null,null)
-                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);
+                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);*/
+
+
+        DfuServiceInitiator starter = new DfuServiceInitiator(address)
+                .setDeviceName("DfuTarg")
+                .setKeepBond(false)
+                .setForceDfu(false)
+                .setPacketsReceiptNotificationsEnabled(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+//                .setPacketsReceiptNotificationsValue(numberOfPackets== null ? -1 :numberOfPackets)
+                .setPacketsReceiptNotificationsValue( DfuServiceInitiator.DEFAULT_PRN_VALUE)
+                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true)
+                .setBinOrHex(DfuService.TYPE_APPLICATION,null, filePath)
+                .setInitFile(null,null);
+
         if (name != null) {
             starter.setDeviceName(name);
         }
