@@ -29,7 +29,7 @@ class AndroidSpecialParameter {
   /// This flag is ignored when Secure DFU Buttonless Service is used. It will keep or remove the
   /// bond depending on the Buttonless service type.
   ///
-  final bool? keepBond;
+  final bool keepBond;
 
   /// Sets whether the bond should be created after the DFU is complete.
   /// Please see the {@link DfuBaseService#EXTRA_RESTORE_BOND} for more information regarding
@@ -37,13 +37,13 @@ class AndroidSpecialParameter {
   ///
   /// This flag is ignored when Secure DFU Buttonless Service is used. It will keep or will not
   /// restore the bond depending on the Buttonless service type.
-  final bool? restoreBond;
+  final bool restoreBond;
 
   /// Enables or disables the Packet Receipt Notification (PRN) procedure.
   ///
   /// By default the PRNs are disabled on devices with Android Marshmallow or newer and enabled on
   /// older ones.
-  final bool? packetReceiptNotificationsEnabled;
+  final bool packetReceiptNotificationsEnabled;
 
   const AndroidSpecialParameter({
     this.disableNotification = false,
@@ -89,12 +89,12 @@ class FlutterNordicDfu {
   static Future<String> startDfu(
     String address,
     String filePath, {
-    String? name,
-    DfuProgressListenerAdapter? progressListener,
-    bool? fileInAsset,
+    String name,
+    DfuProgressListenerAdapter progressListener,
+    bool fileInAsset,
     bool forceDfu = false,
-    bool? enablePRNs,
-    int? numberOfPackets,
+    bool enablePRNs,
+    int numberOfPackets,
     bool enableUnsafeExperimentalButtonlessServiceInSecureDfu = false,
     AndroidSpecialParameter androidSpecialParameter =
         const AndroidSpecialParameter(),
@@ -222,31 +222,31 @@ abstract class DfuProgressListenerAdapter {
 }
 
 class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
-  void Function(String deviceAddress)? onDeviceConnectedHandle;
+  void Function(String deviceAddress) onDeviceConnectedHandle;
 
-  void Function(String deviceAddress)? onDeviceConnectingHandle;
+  void Function(String deviceAddress) onDeviceConnectingHandle;
 
-  void Function(String deviceAddress)? onDeviceDisconnectedHandle;
+  void Function(String deviceAddress) onDeviceDisconnectedHandle;
 
-  void Function(String deviceAddress)? onDeviceDisconnectingHandle;
+  void Function(String deviceAddress) onDeviceDisconnectingHandle;
 
-  void Function(String deviceAddress)? onDfuAbortedHandle;
+  void Function(String deviceAddress) onDfuAbortedHandle;
 
-  void Function(String deviceAddress)? onDfuCompletedHandle;
+  void Function(String deviceAddress) onDfuCompletedHandle;
 
-  void Function(String deviceAddress)? onDfuProcessStartedHandle;
+  void Function(String deviceAddress) onDfuProcessStartedHandle;
 
-  void Function(String deviceAddress)? onDfuProcessStartingHandle;
+  void Function(String deviceAddress) onDfuProcessStartingHandle;
 
-  void Function(String deviceAddress)? onEnablingDfuModeHandle;
+  void Function(String deviceAddress) onEnablingDfuModeHandle;
 
-  void Function(String deviceAddress)? onFirmwareValidatingHandle;
+  void Function(String deviceAddress) onFirmwareValidatingHandle;
 
-  void Function(String deviceAddress, int error, int errorType, String message)?
+  void Function(String deviceAddress, int error, int errorType, String message)
       onErrorHandle;
 
   void Function(String deviceAddress, int percent, double speed,
-      double avgSpeed, int currentPart, int partsTotal)? onProgressChangedHandle;
+      double avgSpeed, int currentPart, int partsTotal) onProgressChangedHandle;
 
   DefaultDfuProgressListenerAdapter({
     this.onDeviceConnectedHandle,
@@ -267,7 +267,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDeviceConnected(String deviceAddress) {
     super.onDeviceConnected(deviceAddress);
     if (onDeviceConnectedHandle != null) {
-      onDeviceConnectedHandle!(deviceAddress);
+      onDeviceConnectedHandle(deviceAddress);
     }
   }
 
@@ -275,7 +275,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDeviceConnecting(String deviceAddress) {
     super.onDeviceConnecting(deviceAddress);
     if (onDeviceConnectingHandle != null) {
-      onDeviceConnectingHandle!(deviceAddress);
+      onDeviceConnectingHandle(deviceAddress);
     }
   }
 
@@ -283,7 +283,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDeviceDisconnected(String deviceAddress) {
     super.onDeviceDisconnected(deviceAddress);
     if (onDeviceDisconnectedHandle != null) {
-      onDeviceDisconnectedHandle!(deviceAddress);
+      onDeviceDisconnectedHandle(deviceAddress);
     }
   }
 
@@ -291,7 +291,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDeviceDisconnecting(String deviceAddress) {
     super.onDeviceDisconnecting(deviceAddress);
     if (onDeviceDisconnectingHandle != null) {
-      onDeviceDisconnectingHandle!(deviceAddress);
+      onDeviceDisconnectingHandle(deviceAddress);
     }
   }
 
@@ -299,7 +299,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDfuAborted(String deviceAddress) {
     super.onDfuAborted(deviceAddress);
     if (onDfuAbortedHandle != null) {
-      onDfuAbortedHandle!(deviceAddress);
+      onDfuAbortedHandle(deviceAddress);
     }
   }
 
@@ -307,7 +307,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDfuCompleted(String deviceAddress) {
     super.onDfuCompleted(deviceAddress);
     if (onDfuCompletedHandle != null) {
-      onDfuCompletedHandle!(deviceAddress);
+      onDfuCompletedHandle(deviceAddress);
     }
   }
 
@@ -315,7 +315,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDfuProcessStarted(String deviceAddress) {
     super.onDfuProcessStarted(deviceAddress);
     if (onDfuProcessStartedHandle != null) {
-      onDfuProcessStartedHandle!(deviceAddress);
+      onDfuProcessStartedHandle(deviceAddress);
     }
   }
 
@@ -323,7 +323,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onDfuProcessStarting(String deviceAddress) {
     super.onDfuProcessStarting(deviceAddress);
     if (onDfuProcessStartingHandle != null) {
-      onDfuProcessStartingHandle!(deviceAddress);
+      onDfuProcessStartingHandle(deviceAddress);
     }
   }
 
@@ -331,7 +331,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onEnablingDfuMode(String deviceAddress) {
     super.onEnablingDfuMode(deviceAddress);
     if (onEnablingDfuModeHandle != null) {
-      onEnablingDfuModeHandle!(deviceAddress);
+      onEnablingDfuModeHandle(deviceAddress);
     }
   }
 
@@ -339,7 +339,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void onFirmwareValidating(String deviceAddress) {
     super.onFirmwareValidating(deviceAddress);
     if (onFirmwareValidatingHandle != null) {
-      onFirmwareValidatingHandle!(deviceAddress);
+      onFirmwareValidatingHandle(deviceAddress);
     }
   }
 
@@ -357,7 +357,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
       message,
     );
     if (onErrorHandle != null) {
-      onErrorHandle!(
+      onErrorHandle(
         deviceAddress,
         error,
         errorType,
@@ -383,7 +383,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
       partsTotal,
     );
     if (onProgressChangedHandle != null) {
-      onProgressChangedHandle!(
+      onProgressChangedHandle(
         deviceAddress,
         percent,
         speed,
