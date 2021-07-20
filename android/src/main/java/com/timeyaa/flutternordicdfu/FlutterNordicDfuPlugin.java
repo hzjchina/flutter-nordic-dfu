@@ -117,12 +117,15 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
     private void startDfu(String address, @Nullable String name, String filePath, Boolean forceDfu, Boolean enableUnsafeExperimentalButtonlessServiceInSecureDfu, Boolean disableNotification, Boolean keepBond, Boolean packetReceiptNotificationsEnabled, Boolean restoreBond, Boolean startAsForegroundService, Result result,Integer numberOfPackets,Boolean enablePRNs) {
 
         DfuServiceInitiator starter = new DfuServiceInitiator(address)
-                .setZip(filePath)
+               // .setZip(filePath)
+                .setDeviceName("DfuTarg")
                 .setKeepBond(true)
                 .setForceDfu(forceDfu == null ? false:forceDfu)
                 .setPacketsReceiptNotificationsEnabled(enablePRNs == null ? Build.VERSION.SDK_INT < Build.VERSION_CODES.M:enablePRNs)
                 .setPacketsReceiptNotificationsValue(numberOfPackets== null ? -1 :numberOfPackets)
                 .setPrepareDataObjectDelay(400)
+                .setBinOrHex(DfuService.TYPE_APPLICATION,null, filePath)
+                .setInitFile(null,null)
                 .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);
         if (name != null) {
             starter.setDeviceName(name);
