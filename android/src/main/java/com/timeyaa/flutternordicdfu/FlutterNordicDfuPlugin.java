@@ -1,9 +1,14 @@
 package com.timeyaa.flutternordicdfu;
 
 import android.app.NotificationManager;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -64,28 +69,43 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
         DfuServiceListenerHelper.registerProgressListener(registrar.context(), instance.mDfuProgressListener);
     }
 
+    String dfuAddress;
+    String dfuName;
+    String filePath ;
+    Boolean fileInAsset ;
+    Boolean forceDfu ;
+    Boolean enableUnsafeExperimentalButtonlessServiceInSecureDfu ;
+    Boolean disableNotification ;
+    Boolean keepBond ;
+    Boolean packetReceiptNotificationsEnabled ;
+    Boolean restoreBond ;
+    Boolean startAsForegroundService ;
+    Integer numberOfPackets ;
+    Boolean enablePRNs ;
+
+
     @Override
     public void onMethodCall(MethodCall call, Result result) {
         if (call.method.equals("startDfu")) {
-            String address = call.argument("address");
-            String name = call.argument("name");
-            String filePath = call.argument("filePath");
-            Boolean fileInAsset = call.argument("fileInAsset");
-            Boolean forceDfu = call.argument("forceDfu");
-            Boolean enableUnsafeExperimentalButtonlessServiceInSecureDfu = call.argument("enableUnsafeExperimentalButtonlessServiceInSecureDfu");
-            Boolean disableNotification = call.argument("disableNotification");
-            Boolean keepBond = call.argument("keepBond");
-            Boolean packetReceiptNotificationsEnabled = call.argument("packetReceiptNotificationsEnabled");
-            Boolean restoreBond = call.argument("restoreBond");
-            Boolean startAsForegroundService = call.argument("startAsForegroundService");
-            Integer numberOfPackets = call.argument("numberOfPackets");
-            Boolean enablePRNs = call.argument("enablePRNs");
+             dfuAddress = call.argument("address");
+             dfuName = call.argument("name");
+             filePath = call.argument("filePath");
+             fileInAsset = call.argument("fileInAsset");
+             forceDfu = call.argument("forceDfu");
+             enableUnsafeExperimentalButtonlessServiceInSecureDfu = call.argument("enableUnsafeExperimentalButtonlessServiceInSecureDfu");
+             disableNotification = call.argument("disableNotification");
+             keepBond = call.argument("keepBond");
+             packetReceiptNotificationsEnabled = call.argument("packetReceiptNotificationsEnabled");
+             restoreBond = call.argument("restoreBond");
+             startAsForegroundService = call.argument("startAsForegroundService");
+             numberOfPackets = call.argument("numberOfPackets");
+             enablePRNs = call.argument("enablePRNs");
 
             if (fileInAsset == null) {
                 fileInAsset = false;
             }
 
-            if (address == null || filePath == null) {
+            if (dfuAddress == null || filePath == null) {
                 result.error("Abnormal parameter", "address and filePath are required", null);
                 return;
             }
@@ -103,7 +123,7 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
             }
 
             pendingResult = result;
-            startDfu(address, name, filePath, forceDfu, enableUnsafeExperimentalButtonlessServiceInSecureDfu, disableNotification, keepBond, packetReceiptNotificationsEnabled, restoreBond, startAsForegroundService, result,numberOfPackets,enablePRNs);
+            startDfu(dfuAddress, dfuName, filePath, forceDfu, enableUnsafeExperimentalButtonlessServiceInSecureDfu, disableNotification, keepBond, packetReceiptNotificationsEnabled, restoreBond, startAsForegroundService, result,numberOfPackets,enablePRNs);
         } else if (call.method.equals("abortDfu")) {
             if (controller != null) {
                 controller.abort();
@@ -113,29 +133,96 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
         }
     }
 
+    private BluetoothAdapter mBluetoothAdapter;
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            int what = msg.what;
+            if(what == 2){
+                scanLeDevice(true);
+            }else if(what == 3){
+                startDfu(dfuAddress, dfuName, filePath, forceDfu, enableUnsafeExperimentalButtonlessServiceInSecureDfu, disableNotification, keepBond, packetReceiptNotificationsEnabled, restoreBond, startAsForegroundService, pendingResult,numberOfPackets,enablePRNs);
+            }else if(what == 4){
+              //  dfuMacTV.setText(dfuMac+" "+dfuName);
+//                dfuMacTV.setText(dfuMac);
+            }
+        }
+    };
+
+    private void scanLeDevice(boolean enable) {
+        final BluetoothManager bluetoothManager =
+                (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        if (bluetoothManager != null) {
+            mBluetoothAdapter = bluetoothManager.getAdapter();
+        }
+
+        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+            //Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            //startActivityForResult(enableBtIntent, 1);
+            return;
+        }
+        if (enable) {
+            // Stops scanning after a pre-defined scan period.
+            // 预先定义停止蓝牙扫描的时间（因为蓝牙扫描需要消耗较多的电量）
+//            mHandler.removeCallbacks(scanLeRunable);
+            mHandler.postDelayed(scanLeRunnable, 1000*20);
+            // 定义一个回调接口供扫描结束处理
+            mBluetoothAdapter.startLeScan(mLeScanCallback);
+        } else {
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//            mHandler.removeCallbacks(scanLeRunable);
+
+        }
+    }
+    private Runnable scanLeRunnable = new Runnable() {
+        @Override
+        public void run() {
+            //if(StringUtils.isEmpty(dfuMac)) updatePercentTV.setText(getString(R.string.src_no_dfu));
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        }
+    };
+
+    private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+        @Override
+        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+
+//            VDLog.i(device.getName() + " : " + rssi);
+            String name = device.getName();
+            if (name != null) {
+                if (name.toUpperCase().contains("DFU")) {// if (name.toUpperCase().equals("DFUTARG")) { DfuTar� :  DfuTar� : -49 for samsung
+                    dfuAddress = device.getAddress();
+                    dfuName = name;
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//                    mHandler.removeCallbacks(scanLeRunable);
+
+
+                    mHandler.sendEmptyMessageDelayed(3,200);
+                }
+            }
+        }
+    };
+
     /**
      * Start Dfu
      */
     private void startDfu(String address, @Nullable String name, String filePath, Boolean forceDfu, Boolean enableUnsafeExperimentalButtonlessServiceInSecureDfu, Boolean disableNotification, Boolean keepBond, Boolean packetReceiptNotificationsEnabled, Boolean restoreBond, Boolean startAsForegroundService, Result result,Integer numberOfPackets,Boolean enablePRNs) {
 
-       /* DfuServiceInitiator starter = new DfuServiceInitiator(address)
-               // .setZip(filePath)
-                .setDeviceName("DfuTarg")
-                .setKeepBond(true)
-                .setForceDfu(forceDfu == null ? false:forceDfu)
-                .setPacketsReceiptNotificationsEnabled(enablePRNs == null ? Build.VERSION.SDK_INT < Build.VERSION_CODES.M:enablePRNs)
-                .setPacketsReceiptNotificationsValue(numberOfPackets== null ? -1 :numberOfPackets)
-                .setPrepareDataObjectDelay(400)
-                .setBinOrHex(DfuService.TYPE_APPLICATION,null, filePath)
-                .setInitFile(null,null)
-                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);*/
-
+        if(dfuAddress == null || dfuAddress.equals("")){
+            scanLeDevice(true);
+            return;
+        }
 
         DfuServiceInitiator starter = new DfuServiceInitiator(address)
-                .setDeviceName("DfuTarg")
-                .setKeepBond(false)
+                .setDeviceName(name)
+                .setKeepBond(true)
                 .setForceDfu(false)
-                .setPacketsReceiptNotificationsEnabled(false);
+//                .setForceDfu(forceDfu == null ? false:forceDfu)
+//                .setPacketsReceiptNotificationsEnabled(enablePRNs == null ? Build.VERSION.SDK_INT < Build.VERSION_CODES.M:enablePRNs)
+//                .setPacketsReceiptNotificationsValue(numberOfPackets== null ? 0 :numberOfPackets)
+                .setPrepareDataObjectDelay(400)
+                .setPacketsReceiptNotificationsEnabled(false)
+//        .setForceScanningForNewAddressInLegacyDfu(true)
+                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);
 
         pendingResult = result;
 
@@ -245,7 +332,6 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
                 pendingResult = null;
             }
 
-
             channel.invokeMethod("onDfuAborted", deviceAddress);
         }
 
@@ -259,8 +345,9 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
                 pendingResult = null;
             }
 
-
             channel.invokeMethod("onDfuCompleted", deviceAddress);
+
+//            if(controller!=null)controller.abort();
         }
 
         @Override
@@ -279,6 +366,11 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
         public void onEnablingDfuMode(@NonNull String deviceAddress) {
             super.onEnablingDfuMode(deviceAddress);
             channel.invokeMethod("onEnablingDfuMode", deviceAddress);
+
+            Log.d(TAG,"onEnablingDfuMode  "+deviceAddress);
+            ///search the dfu mac
+            dfuAddress = "";
+            mHandler.sendEmptyMessageDelayed(3,1000);
         }
 
         @Override
