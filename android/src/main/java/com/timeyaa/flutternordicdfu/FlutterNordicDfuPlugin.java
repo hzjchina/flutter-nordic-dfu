@@ -94,6 +94,8 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
                 filePath = registrar.lookupKeyForAsset(filePath);
                 String tempFileName = PathUtils.getExternalAppCachePath(mContext)
                         + UUID.randomUUID().toString();
+
+                tempFileName += filePath.substring(filePath.lastIndexOf("."));
                 // copy asset file to temp path
                 ResourceUtils.copyFileFromAssets(filePath, tempFileName, mContext);
                 // now, the path is an absolute path, and can pass it to nordic dfu libarary
@@ -133,18 +135,28 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
                 .setDeviceName("DfuTarg")
                 .setKeepBond(false)
                 .setForceDfu(false)
-                .setPacketsReceiptNotificationsEnabled(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-//                .setPacketsReceiptNotificationsValue(numberOfPackets== null ? -1 :numberOfPackets)
-                .setPacketsReceiptNotificationsValue( DfuServiceInitiator.DEFAULT_PRN_VALUE)
-                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true)
-                .setBinOrHex(DfuService.TYPE_APPLICATION,null, filePath)
-                .setInitFile(null,null);
+                .setPacketsReceiptNotificationsEnabled(false);
+
+        pendingResult = result;
 
         if (name != null) {
             starter.setDeviceName(name);
         }
 
-        pendingResult = result;
+        if(filePath.endsWith("hex")){
+            starter.setBinOrHex(DfuService.TYPE_APPLICATION,null, filePath)
+                    .setInitFile(null,null);
+        }else if(filePath.endsWith("zip")){
+            starter.setZip(filePath);
+        }else{
+
+            if (pendingResult != null) {
+                pendingResult.error("3", "DFU FAILED", "not support file type " +filePath );
+                pendingResult = null;
+            }
+            return;
+        }
+
 
         if (enableUnsafeExperimentalButtonlessServiceInSecureDfu != null) {
             starter.setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(enableUnsafeExperimentalButtonlessServiceInSecureDfu);
