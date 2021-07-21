@@ -91,10 +91,40 @@ public class SwiftFlutterNordicDfuPlugin: NSObject, FlutterPlugin, DFUServiceDel
             return
         }
         
-        guard let firmware = DFUFirmware(urlToZipFile: URL(fileURLWithPath: filePath)) else {
+      
+        /*guard let firmware = DFUFirmware(urlToZipFile: URL(fileURLWithPath: filePath)) else {
             result(FlutterError(code: "DFU_FIRMWARE_NOT_FOUND", message: "Could not dfu zip file", details: nil))
             return
         }
+        guard let firmware = DFUFirmware(urlToBinOrHexFile: URL(fileURLWithPath: filePath), urlToDatFile: nil, type: .application) else {
+            result(FlutterError(code: "DFU_FIRMWARE_NOT_FOUND", message: "Could not dfu zip file", details: nil))
+            return
+        }*/
+        
+        var firmware : DFUFirmware!
+        let urlFile = URL(fileURLWithPath: filePath)
+        let fileNameExtension = urlFile.pathExtension.lowercased()
+         
+        print("urlFile  is \(urlFile)")
+        
+       // print("fileNameExtension  is \(fileNameExtension)")
+        
+        if fileNameExtension == "zip" {
+            firmware = DFUFirmware(urlToZipFile: urlFile)
+            //print("fileNameExtension zip is \(fileNameExtension)")
+        }else if fileNameExtension == "hex"{
+            firmware = DFUFirmware(urlToBinOrHexFile: URL(fileURLWithPath: filePath), urlToDatFile: nil, type: .application)
+            //print("fileNameExtension hex is \(fileNameExtension)")
+        }else {
+            result(FlutterError(code: "DFU_FIRMWARE_NOT_FOUND", message: "not support file", details: nil))
+            return
+        }
+       /* guard firmware is NSNull else{
+            
+            result(FlutterError(code: "DFU_FIRMWARE_NOT_FOUND", message: "not support file 2", details: nil))
+            return
+        }*/
+       
         
         let dfuInitiator = DFUServiceInitiator(queue: nil)
             .with(firmware: firmware);
