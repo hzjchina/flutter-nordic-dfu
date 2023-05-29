@@ -37,15 +37,16 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core:1.0.2'
+//    implementation 'androidx.core:core:1.0.2'
 //    implementation 'no.nordicsemi.android:dfu:1.3.0'
 //    implementation 'no.nordicsemi.android:dfu:1.11.0'
 //    implementation 'no.nordicsemi.android:dfu:1.9.0'
 //    implementation 'no.nordicsemi.android:dfu:1.12.0'
     implementation fileTree(dir: 'libs', include: ['*.aar'])
 
-   // implementation 'androidx.core:core:1.5.0-alpha01'
+//    implementation 'androidx.core:core:1.7.0'
+    implementation 'androidx.core:core:1.6.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
-    implementation 'androidx.annotation:annotation:1.1.0'
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'androidx.annotation:annotation:1.2.0'
+    implementation 'com.google.code.gson:gson:2.8.8'
 }
